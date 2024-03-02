@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use clap::Parser;
 use observatory::shared::state::AppState;
 use tokio::signal;
