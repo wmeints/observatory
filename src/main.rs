@@ -1,15 +1,29 @@
+use clap::Parser;
 use tracing;
 use tracing_subscriber;
 use tokio::signal;
 
+#[derive(Parser, Debug)]
+#[command(version)]
+struct Args{
+    #[arg(short,long, default_value = "0.0.0.0")]
+    address: String,
+
+    #[arg(short, long, default_value_t = 3000)]
+    port: i32,
+}
+
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
+    let binding_address = format!("{}:{}", args.address, args.port);
+
     tracing_subscriber::fmt::init();
 
-    tracing::info!("Listening on http://0.0.0.0:3000");
+    tracing::info!("Listening on http://{}", binding_address);
 
     let app = observatory::routes::router();
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(binding_address).await.unwrap();
 
     axum::serve(listener, app).with_graceful_shutdown(shutdown_handler()).await.unwrap();
 }
