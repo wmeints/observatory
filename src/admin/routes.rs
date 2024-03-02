@@ -3,6 +3,7 @@ use axum::Router;
 use axum::routing::{get_service};
 use tower_http::services::{ServeDir, ServeFile};
 
+/// Creates the router for the pages under /admin.
 pub fn router() -> Router {
     let assets = ServeDir::new("./admin/dist/assets");
     let index_file = ServeFile::new("./admin/dist/index.html");
