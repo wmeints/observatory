@@ -1,9 +1,9 @@
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 
 /// Renders the homepage.
 async fn index() -> &'static str {
-    "Hello from the homepage"
+    "Hello world"
 }
 
 /// Creates the router for the front page.
