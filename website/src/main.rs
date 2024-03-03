@@ -17,26 +17,19 @@ struct CommandLineArgs {
 #[tokio::main]
 async fn main() {
     let args = parse_args();
-
     let binding_address = format!("{}:{}", args.address, args.port);
 
-    tracing::info!("Configuring database connection pool");
+    tracing_subscriber::fmt::init();
 
     let database_connection = Database::connect(args.database_url)
         .await
         .expect("Couldn't connect to the database.");
-
-    tracing_subscriber::fmt::init();
-
-    tracing::info!("Running migrations");
 
     // Automatically migrate the database.
     // This saves me a ton of time managing the website :-)
     Migrator::up(&database_connection, None)
         .await
         .expect("Unable to update the database");
-
-    tracing::info!("Initializing application state");
 
     // The app state contains the shared resources for the website such as database connections.
     // The application crashes when we can't construct the application state.
@@ -45,6 +38,7 @@ async fn main() {
     // The routes for the website are split in two areas: frontpage, and admin.
     // Each has its own module in the application code. We merge the routes into a single router here.
     let app = Router::new()
+        .merge(observatory::api::routes(app_state.clone()))
         .merge(observatory::admin::routes(app_state.clone()))
         .merge(observatory::frontpage::routes(app_state.clone()))
         .with_state(app_state);
