@@ -8,3 +8,4 @@ pub async fn connect_database(url: &str) -> Result<Client> {
 
     Ok(client)
 }
+

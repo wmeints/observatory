@@ -1,7 +1,8 @@
+use axum::routing::get;
+use axum::Router;
 use clap::Parser;
 use observatory::shared::state::AppState;
-use tokio::signal;
-use tracing;
+use tokio::net::TcpListener;
 use tracing_subscriber;
 
 #[derive(Parser, Debug)]
@@ -21,44 +22,13 @@ struct Args {
 async fn main() {
     let args = Args::parse();
     let binding_address = format!("{}:{}", args.address, args.port);
-    let app_state = AppState::new(args.database_url);
 
     tracing_subscriber::fmt::init();
 
-    tracing::info!("Listening on http://{}", binding_address);
-
-    let app = observatory::routes::router(app_state);
-
-    let listener = tokio::net::TcpListener::bind(binding_address)
+    let app = observatory::routes::router();
+    let listener = TcpListener::bind(binding_address)
         .await
-        .unwrap();
+        .expect("Failed to bind to address");
 
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_handler())
-        .await
-        .unwrap();
-}
-
-async fn shutdown_handler() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("Failed to create Ctrl+C handler")
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("Failed to create signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => { tracing::info!("Shutting down") },
-        _ = terminate => { tracing::info!("Shutting down") },
-    }
+    axum::serve(listener, app).await.unwrap()
 }
