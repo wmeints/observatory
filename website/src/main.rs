@@ -1,7 +1,8 @@
-use axum::{routing::get, Router};
+use axum::Router;
 use clap::{Arg, Command};
 
 use dotenvy::dotenv;
+use migration::{Migrator, MigratorTrait};
 use observatory::shared::state::AppState;
 use sea_orm::Database;
 use tokio::net::TcpListener;
@@ -19,15 +20,27 @@ async fn main() {
 
     let binding_address = format!("{}:{}", args.address, args.port);
 
+    tracing::info!("Configuring database connection pool");
+
     let database_connection = Database::connect(args.database_url)
         .await
         .expect("Couldn't connect to the database.");
 
+    tracing_subscriber::fmt::init();
+
+    tracing::info!("Running migrations");
+
+    // Automatically migrate the database.
+    // This saves me a ton of time managing the website :-)
+    Migrator::up(&database_connection, None)
+        .await
+        .expect("Unable to update the database");
+
+    tracing::info!("Initializing application state");
+
     // The app state contains the shared resources for the website such as database connections.
     // The application crashes when we can't construct the application state.
     let app_state = AppState::new(database_connection);
-
-    tracing_subscriber::fmt::init();
 
     // The routes for the website are split in two areas: frontpage, and admin.
     // Each has its own module in the application code. We merge the routes into a single router here.

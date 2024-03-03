@@ -1,0 +1,28 @@
+[package]
+name = "observatory"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.80"
+axum = { version = "0.7.4", features = ["tower-log"] }
+chrono = { version = "0.4.34", features = ["serde"] }
+clap = { version = "4.5.1", features = ["derive", "cargo", "env"] }
+dotenvy = { version = "0.15.7", features = ["clap"] }
+sea-orm = { version = "0.12.14", features = [
+    "runtime-tokio",
+    "sqlx-postgres",
+    "with-chrono",
+] }
+serde = { version = "1.0.197", features = ["derive"] }
+sqlx = { version = "0.7.3", features = ["runtime-tokio"] }
+thiserror = "1.0.57"
+tokio = { version = "1.36.0", features = ["signal", "full"] }
+tower = "0.4.13"
+tower-http = { version = "0.5.2", features = ["fs", "trace"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+migration = { path = "../migration" }
+entity = { path = "../entity" }
