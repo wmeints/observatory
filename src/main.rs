@@ -1,7 +1,7 @@
-use axum::routing::get;
-use axum::Router;
+
+
 use clap::Parser;
-use observatory::shared::state::AppState;
+
 use tokio::net::TcpListener;
 use tracing_subscriber;
 
